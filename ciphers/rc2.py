@@ -106,11 +106,3 @@ def hexa(K, M, b):
 	C = RC2(K,b).block(M)
 	s = "".join("%.2x" % c for c in C)
 	return s
-
-assert hexa("0000000000000000",                 "0000000000000000",  63) == "ebb773f993278eff"
-assert hexa("ffffffffffffffff",                 "ffffffffffffffff",  64) == "278b27e42e2f0d49"
-assert hexa("3000000000000000",                 "1000000000000001",  64) == "30649edf9be7d2c2"
-assert hexa("88",                               "0000000000000000",  64) == "61a8a244adacccf0"
-assert hexa("88bca90e90875a",                   "0000000000000000",  64) == "6ccf4308974c267f"
-assert hexa("88bca90e90875a7f0f79c384627bafb2", "0000000000000000",  64) == "1a807d272bbe5db1"
-assert hexa("88bca90e90875a7f0f79c384627bafb2", "0000000000000000", 128) == "2269552ab0f85ca6"

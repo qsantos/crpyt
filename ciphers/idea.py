@@ -89,9 +89,3 @@ class IDEA(object):
 		]
 
 		return R
-
-K = [1, 2, 3, 4, 5, 6, 7, 8]
-M = [0, 1, 2, 3]
-C = [4603, 60715, 408, 28133]
-assert IDEA(K).block(M, False) == C
-assert IDEA(K).block(C, True)  == M

@@ -39,7 +39,3 @@ class RC4(object):
 
 	def gen(self, n):
 		return "".join("%.2x" % self.byte() for _ in range(n))
-
-assert RC4("Key"   ).gen(10) == "eb9f7781b734ca72a719"
-assert RC4("Wiki"  ).gen( 6) == "6044db6d41b7"
-assert RC4("Secret").gen( 8) == "04d46b053ca87b59"
