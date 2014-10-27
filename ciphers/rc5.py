@@ -50,10 +50,8 @@ class RC5(object):
 	def __init__(self, K):
 		L = bytes_to_words(K, u, 'little')
 
-		P64 = 0xb7e151628aed2a6b
-		Q64 = 0x9e3779b97f4a7c15
-		P, Q = P64>>(64-w)|1, Q64>>(64-w)|1
-
+		P = ( 0xb7e151628aed2a6b >> (64-w) ) | 1
+		Q = ( 0x9e3779b97f4a7c15 >> (64-w) ) | 1
 		S = [P+Q*i for i in range(t)]
 
 		A, B = 0, 0
