@@ -35,10 +35,6 @@ def words_to_bytes(L, ws, byteorder):
 	return R
 
 w = 32
-r = 12
-b = 16
-c =  4
-t = 26
 u = w//8
 def ROL(n,k):
 	k %= w
@@ -47,19 +43,22 @@ def ROL(n,k):
 
 # Reference: *The RC5 Encryption Algorithm* by Ronald Rivest
 class RC5(object):
-	def __init__(self, K):
+	def __init__(self, K, r=12):
 		L = bytes_to_words(K, u, 'little')
 
+		t = 2*r+2
 		P = ( 0xb7e151628aed2a6b >> (64-w) ) | 1
 		Q = ( 0x9e3779b97f4a7c15 >> (64-w) ) | 1
 		S = [P+Q*i for i in range(t)]
 
 		A, B = 0, 0
+		c = len(K)//u
 		for k in range(3*max(t,c)):
 			i, j = k%t, k%c
 			A = S[i] = ROL(S[i]+A+B,3)
 			B = L[j] = ROL(L[j]+A+B,A+B)
 
+		self.r = r
 		self.S = S
 
 	def block(self, X, revert=False):
@@ -68,7 +67,7 @@ class RC5(object):
 		A, B = X
 
 		if revert:
-			for i in reversed(range(r)):
+			for i in reversed(range(self.r)):
 				B = ROL(B-S[2*i+3], -A)^A
 				A = ROL(A-S[2*i+2], -B)^B
 			B -= S[1]
@@ -76,7 +75,7 @@ class RC5(object):
 		else:
 			A += S[0]
 			B += S[1]
-			for i in range(r):
+			for i in range(self.r):
 				A = ROL(A^B, B)+S[2*i+2]
 				B = ROL(A^B, A)+S[2*i+3]
 
