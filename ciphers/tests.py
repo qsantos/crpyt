@@ -16,21 +16,13 @@
 #
 # END LICENCE
 
+from util import *
+
 from des import *
-
-def bytes_to_bits(l):
-	l = [int_to_list(i,8) for i in l]
-	l = [x for li in l for x in li]
-	return l
-
-def bits_to_bytes(l):
-	return [list_to_int(l[o:o+8]) for o in range(0,len(l),8)]
-
 key   = [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef]
 block = [0xfe, 0xdc, 0xba, 0x98, 0x76, 0x54, 0x32, 0x10]
 out   = [0x37, 0x64, 0x38, 0x4f, 0x8e, 0x76, 0x12, 0x6b]
-assert bits_to_bytes(DES(bytes_to_bits(key)).block(bytes_to_bits(block), True)) == out
-
+assert bits_to_words(DES(words_to_bits(key)).block(words_to_bits(block), True)) == out
 
 from rc2 import *
 assert hexa("0000000000000000",                 "0000000000000000",  63) == "ebb773f993278eff"

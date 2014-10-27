@@ -16,14 +16,8 @@
 #
 # END LICENCE
 
+from util import *
 from des_data import *
-
-def list_to_int(l):
-	return int(''.join([str(c) for c in l]), 2)
-
-def int_to_list(i, n):
-	fmt = "{:0%ib}" % n
-	return [int(c) for c in fmt.format(i)]
 
 def subst(P,l,X):
 	return [X[P[b]] for b in range(l)]
@@ -32,13 +26,11 @@ def f(R, K):
 	cur = subst(E, 48, R)
 	cur = [a^b for (a,b) in zip(cur,K)]
 
-	B = [cur[o:o+6] for o in range(0,len(cur),6)] # 1-to-6 bits
-	B = [list_to_int(b) for b in B]               # to integers
-	B = [S[i][B[i]] for i in range(8)]            # S-box
-	B = [int_to_list(b, 4) for b in B]            # to bits
-	B = [b for Bi in B for b in Bi]               # 6-to-1 bits
+	cur = bits_to_words(cur, 6)
+	cur = [S[i][cur[i]] for i in range(8)]
+	cur = words_to_bits(cur, 4)
 
-	return subst(P, 32, B)
+	return subst(P, 32, cur)
 
 def shift(l, s):
 	n = len(l)

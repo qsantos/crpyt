@@ -16,6 +16,8 @@
 #
 # END LICENCE
 
+from util import *
+
 PITABLE = [
 	0xd9,0x78,0xf9,0xc4,0x19,0xdd,0xb5,0xed,0x28,0xe9,0xfd,0x79,0x4a,0xa0,0xd8,0x9d,
 	0xc6,0x7e,0x37,0x83,0x2b,0x76,0x53,0x8e,0x62,0x4c,0x64,0x88,0x44,0x8b,0xfb,0xa2,
@@ -57,8 +59,7 @@ class RC2(object):
 		for i in reversed(range(128-T8)):
 			L[i] = PITABLE[L[i+1] ^ L[i+T8]]
 
-		# 8-to-16 bits
-		self.K = [L[2*i] | L[2*i+1]<<8 for i in range(64)]
+		self.K = bytes_to_words(L, 2, 'little')
 
 	def mix(self, R, i):
 		t = R[i]
@@ -103,8 +104,7 @@ class RC2(object):
 			self.invmash(R, i)
 
 	def block(self, X, revert=False):
-		# 8-to-16 bits
-		R = [X[2*i] | X[2*i+1]<<8 for i in range(4)]
+		R = bytes_to_words(X, 2, 'little')
 
 		if revert:
 			self.j = 64
@@ -127,10 +127,7 @@ class RC2(object):
 			for i in range(5):
 				self.mixround(R)
 
-		# 16-to-8 bits
-		hi = [x >> 8   for x in R]
-		lo = [x & 0xff for x in R]
-		X = [b for w in zip(lo,hi) for b in w]
+		X = words_to_bytes(R, 2, 'little')
 		return X
 
 def hexa(K, M, b):
