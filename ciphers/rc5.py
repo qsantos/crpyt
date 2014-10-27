@@ -16,6 +16,24 @@
 #
 # END LICENCE
 
+def bytes_to_words(L, ws, byteorder):
+	l = len(L)
+	R = [0]*(l//ws)
+	it = range(l) if byteorder == 'big' else reversed(range(l))
+	for i in it:
+		R[i//ws] = (R[i//ws] << 8) | L[i]
+	return R
+
+def words_to_bytes(L, ws, byteorder):
+	R = []
+	for w in L:
+		W = []
+		for i in range(ws):
+			W.append(w&0xff)
+			w >>= 8
+		R += W if byteorder == 'little' else W[::-1]
+	return R
+
 w = 32
 r = 12
 b = 16
@@ -31,10 +49,7 @@ def ROL(n,k):
 # Reference: *The RC5 Encryption Algorithm* by Ronald Rivest
 class RC5(object):
 	def __init__(self, K):
-		# 8-to-w bits
-		L = [0]*c
-		for i in reversed(range(b)):
-			L[i//u] = (L[i//u]<<8) | K[i]
+		L = bytes_to_words(K, u, 'little')
 
 		P64 = 0xb7e151628aed2a6b
 		Q64 = 0x9e3779b97f4a7c15
@@ -51,7 +66,7 @@ class RC5(object):
 		self.S = S
 
 	def block(self, X, revert=False):
-		X = [X[4*i] | (X[4*i+1]<<8) | (X[4*i+2]<<16) | (X[4*i+3]<<24) for i in range(2)]
+		X = bytes_to_words(X, u, 'little')
 		S = self.S
 		A, B = X
 
@@ -68,11 +83,5 @@ class RC5(object):
 				A = ( ROL(A^B, B)+S[2*i+2] )&maskint
 				B = ( ROL(A^B, A)+S[2*i+3] )&maskint
 
-		def f(x):
-			r = []
-			for i in range(4):
-				r.append(x&0xff)
-				x >>= 8
-			return r
-		X = f(A) + f(B)
+		X = words_to_bytes([A,B], 4, 'little')
 		return X
