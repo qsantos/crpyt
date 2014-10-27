@@ -40,11 +40,10 @@ b = 16
 c =  4
 t = 26
 u = w//8
-maskint = (1<<w)-1
 def ROL(n,k):
-	n &= maskint
 	k %= w
-	return ((n<<k)&maskint) | (n>>(w-k))
+	n %= 1<<w
+	return ((n<<k)%(1<<w)) | (n>>(w-k))
 
 # Reference: *The RC5 Encryption Algorithm* by Ronald Rivest
 class RC5(object):
@@ -55,7 +54,7 @@ class RC5(object):
 		Q64 = 0x9e3779b97f4a7c15
 		P, Q = P64>>(64-w)|1, Q64>>(64-w)|1
 
-		S = [(P+Q*i)&maskint for i in range(t)]
+		S = [P+Q*i for i in range(t)]
 
 		A, B = 0, 0
 		for k in range(3*max(t,c)):
@@ -77,11 +76,11 @@ class RC5(object):
 			B -= S[1]
 			A -= S[0]
 		else:
-			A = (A+S[0])&maskint
-			B = (B+S[1])&maskint
+			A += S[0]
+			B += S[1]
 			for i in range(r):
-				A = ( ROL(A^B, B)+S[2*i+2] )&maskint
-				B = ( ROL(A^B, A)+S[2*i+3] )&maskint
+				A = ROL(A^B, B)+S[2*i+2]
+				B = ROL(A^B, A)+S[2*i+3]
 
 		X = words_to_bytes([A,B], 4, 'little')
 		return X
