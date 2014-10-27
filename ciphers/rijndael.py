@@ -38,44 +38,45 @@ def    MixColumns(state): return [c for o in range(0,16,4) for c in prod32(state
 def InvMixColumns(state): return [c for o in range(0,16,4) for c in prod32(state[o:o+4],[14, 9,13,11])]
 
 # Reference: FIPS PUB 197, *AES Proposal* by Rijndael, Daemen and Rijman
-def Rijndael(key, block, Nk, Nb, revert=False):
-	Nr = [[10, 12, 14], [12, 12, 14], [14, 14, 14]][Nk//2-2][Nb//2-2]
+class Rijndael(object):
+	def __init__(self, key, Nk, Nb):
+		self.Nr = [[10, 12, 14], [12, 12, 14], [14, 14, 14]][Nk//2-2][Nb//2-2]
 
-	# key expansion
-	w = key
-	for i in range(Nk,4*(Nr+1)):
-		m = w[-4:]
-		if i % Nk == 0:
-			m = m[1:] + m[:1]
-			m = SubBytes(m)
-			m[0] ^= Rcon[i//Nk-1]
-		elif Nk > 6 and i % Nk == 4:
-			m = SubBytes(m)
-		prev = w[4*(i-Nk):4*(i-Nk)+4]
-		w = w + [a^b for (a,b) in zip (prev,m)]
-	w = [w[o:o+4*Nb] for o in range(0,len(w),4*Nb)]
+		w = key
+		for i in range(Nk,4*(self.Nr+1)):
+			m = w[-4:]
+			if i % Nk == 0:
+				m = m[1:] + m[:1]
+				m = SubBytes(m)
+				m[0] ^= Rcon[i//Nk-1]
+			elif Nk > 6 and i % Nk == 4:
+				m = SubBytes(m)
+			prev = w[4*(i-Nk):4*(i-Nk)+4]
+			w = w + [a^b for (a,b) in zip (prev,m)]
+		self.w = [w[o:o+4*Nb] for o in range(0,len(w),4*Nb)]
 
-	# encryption
-	state = list(block)
-	if revert:
-		state = AddRoundKey (state, w[Nr])
-		state = InvShiftRows(state)
-		state = InvSubBytes (state)
-		for i in reversed(range(1,Nr)):
-			state = AddRoundKey  (state, w[i])
-			state = InvMixColumns(state)
-			state = InvShiftRows (state)
-			state = InvSubBytes  (state)
-		state = AddRoundKey(state, w[0])
-	else:
-		state = AddRoundKey(state, w[0]);
-		for i in range(1,Nr):
+	def block(self, X, revert=False):
+		state = list(X)
+		w = self.w
+		if revert:
+			state = AddRoundKey (state, w[self.Nr])
+			state = InvShiftRows(state)
+			state = InvSubBytes (state)
+			for i in reversed(range(1,self.Nr)):
+				state = AddRoundKey  (state, w[i])
+				state = InvMixColumns(state)
+				state = InvShiftRows (state)
+				state = InvSubBytes  (state)
+			state = AddRoundKey(state, w[0])
+		else:
+			state = AddRoundKey(state, w[0]);
+			for i in range(1,self.Nr):
+				state = SubBytes   (state)
+				state = ShiftRows  (state)
+				state = MixColumns (state)
+				state = AddRoundKey(state, w[i])
 			state = SubBytes   (state)
 			state = ShiftRows  (state)
-			state = MixColumns (state)
-			state = AddRoundKey(state, w[i])
-		state = SubBytes   (state)
-		state = ShiftRows  (state)
-		state = AddRoundKey(state, w[Nr])
+			state = AddRoundKey(state, w[self.Nr])
 
-	return state
+		return state

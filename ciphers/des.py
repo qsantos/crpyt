@@ -45,21 +45,26 @@ def shift(l, s):
 	return [l[(i+s)%n] for i in range(n)]
 
 # Reference: FIPS PUB 46-3
-def DES(key, block, revert=False):
-	LR = subst(IP, 64, block)
-	L, R = LR[:32], LR[32:]
+class DES(object):
+	def __init__(self, key):
+		self.key = key
 
-	CD = subst(PC1, 56, key)
-	for i in range(16):
-		if revert:
-			s = -shifts[15-i]
-			K = subst(PC2, 48, CD)
-			CD = shift(CD[:28], s) + shift(CD[28:], s)
-		else:
-			s = shifts[i]
-			CD = shift(CD[:28], s) + shift(CD[28:], s)
-			K = subst(PC2, 48, CD)
+	def block(self, X, revert=False):
+		key = self.key
+		LR = subst(IP, 64, X)
+		L, R = LR[:32], LR[32:]
 
-		L, R = list(R), [l^r for (l,r) in zip(L,f(R,K))]
+		CD = subst(PC1, 56, key)
+		for i in range(16):
+			if revert:
+				s = -shifts[15-i]
+				K = subst(PC2, 48, CD)
+				CD = shift(CD[:28], s) + shift(CD[28:], s)
+			else:
+				s = shifts[i]
+				CD = shift(CD[:28], s) + shift(CD[28:], s)
+				K = subst(PC2, 48, CD)
 
-	return subst(IPR, 64, R+L)
+			L, R = list(R), [l^r for (l,r) in zip(L,f(R,K))]
+
+		return subst(IPR, 64, R+L)
