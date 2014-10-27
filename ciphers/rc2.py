@@ -37,6 +37,7 @@ PITABLE = [
 
 maskint = 0xffff
 def ROL(x,k): return ((x<<k)&maskint) | (x>>(16-k))
+def ROR(x,k): return ((x>>k)&maskint) | (x<<(16-k))
 
 # Reference: RFC 2268
 class RC2(object):
@@ -80,19 +81,51 @@ class RC2(object):
 		for i in range(4):
 			self.mash(R, i)
 
-	def block(self, X):
+	def invmix(self, R, i):
+		self.j -= 1
+		t = R[i]
+		t = ROR(t,[1,2,3,5][i])
+		t -= R[i-3] & (R[i-1]^maskint)
+		t -= R[i-2] &  R[i-1]
+		t -= self.K[self.j]
+		t &= maskint
+		R[i] = t
+
+	def invmash(self, R, i):
+		R[i] = (R[i] - self.K[R[i-1] & 0x3f]) & maskint
+
+	def invmixround(self, R):
+		for i in reversed(range(4)):
+			self.invmix(R, i)
+
+	def invmashround(self, R):
+		for i in reversed(range(4)):
+			self.invmash(R, i)
+
+	def block(self, X, revert=False):
 		# 8-to-16 bits
 		R = [X[2*i] | X[2*i+1]<<8 for i in range(4)]
 
-		self.j = 0
-		for i in range(5):
-			self.mixround(R)
-		self.mashround(R)
-		for i in range(6):
-			self.mixround(R)
-		self.mashround(R)
-		for i in range(5):
-			self.mixround(R)
+		if revert:
+			self.j = 64
+			for i in range(5):
+				self.invmixround(R)
+			self.invmashround(R)
+			for i in range(6):
+				self.invmixround(R)
+			self.invmashround(R)
+			for i in range(5):
+				self.invmixround(R)
+		else:
+			self.j = 0
+			for i in range(5):
+				self.mixround(R)
+			self.mashround(R)
+			for i in range(6):
+				self.mixround(R)
+			self.mashround(R)
+			for i in range(5):
+				self.mixround(R)
 
 		# 16-to-8 bits
 		hi = [x >> 8   for x in R]
