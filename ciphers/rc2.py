@@ -129,10 +129,3 @@ class RC2(object):
 
 		X = words_to_bytes(R, 2, 'little')
 		return X
-
-def hexa(K, M, b):
-	K = [int(K[o:o+2],16) for o in range(0,len(K),2)]
-	M = [int(M[o:o+2],16) for o in range(0,len(M),2)]
-	C = RC2(K,b).block(M)
-	s = "".join("%.2x" % c for c in C)
-	return s

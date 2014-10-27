@@ -16,6 +16,8 @@
 #
 # END LICENCE
 
+from util import *
+
 maskint = 0xffff
 nrounds = 8
 maxim = 0x10001
@@ -40,7 +42,7 @@ def inv(a, b=maxim):
 class IDEA(object):
 	def __init__(self, key):
 		# key expansion
-		S = key
+		S = bytes_to_words(key, 2, 'little')
 		for i in range(8, 54):
 			if   i % 8 == 6: a, b = i- 7, i-14
 			elif i % 8 == 7: a, b = i-15, i-14
@@ -67,7 +69,7 @@ class IDEA(object):
 
 	def block(self, X, revert=False):
 		Z = self.DK if revert else self.Z
-		x0, x1, x2, x3 = X
+		x0, x1, x2, x3 = bytes_to_words(X, 2, 'little')
 		for r in range(8):
 			x0 = mul(x0, Z[r][0])
 			x1 =    (x1+ Z[r][1])&maskint
@@ -88,4 +90,4 @@ class IDEA(object):
 			mul(x3, Z[nrounds][3]),
 		]
 
-		return R
+		return words_to_bytes(R, 2, 'little')

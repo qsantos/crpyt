@@ -39,10 +39,12 @@ def shift(l, s):
 # Reference: FIPS PUB 46-3
 class DES(object):
 	def __init__(self, key):
-		self.key = key
+		self.key = words_to_bits(key, 8)
 
 	def block(self, X, revert=False):
 		key = self.key
+		X = words_to_bits(X, 8)
+
 		LR = subst(IP, 64, X)
 		L, R = LR[:32], LR[32:]
 
@@ -59,4 +61,6 @@ class DES(object):
 
 			L, R = list(R), [l^r for (l,r) in zip(L,f(R,K))]
 
-		return subst(IPR, 64, R+L)
+		X = subst(IPR, 64, R+L)
+		X = bits_to_words(X, 8)
+		return X
